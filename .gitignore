@@ -1,0 +1,11 @@
+# Java compiled files
+*.class
+
+# IDE files
+.idea/
+*.iml
+
+# Backup files
+*.save
+*.bak
+out/
