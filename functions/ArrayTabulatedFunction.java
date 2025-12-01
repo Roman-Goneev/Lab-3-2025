@@ -16,10 +16,33 @@ public class ArrayTabulatedFunction implements TabulatedFunction {
         return points[pointsCount - 1].getX();
     }
 
+    // Конструктор: с заданными x и y
+    public ArrayTabulatedFunction(double[] xValues, double[] yValues) {
+        if (xValues.length != yValues.length || xValues.length < 2) {
+            throw new IllegalArgumentException("Массивы x и y должны иметь одинаковую длину (минимум 2).");
+        }
+
+        // Проверка упорядоченности ординат
+        for (int i = 0; i < xValues.length - 1; i++) {
+            if (xValues[i] >= xValues[i + 1]) {
+                throw new IllegalArgumentException("Абсциссы должны быть строго упорядочены по возрастанию.");
+            }
+        }
+
+        this.pointsCount = xValues.length;
+        // Инициализация массива с запасом
+        this.points = new FunctionPoint[pointsCount + 10];
+
+        // Копирование точек
+        for (int i = 0; i < pointsCount; i++) {
+            this.points[i] = new FunctionPoint(xValues[i], yValues[i]);
+        }
+    }
+
     // Конструктор(равномерный шаг, y = 0)
     public ArrayTabulatedFunction(double leftX, double rightX, int pointsCount) {
         if (leftX >= rightX || pointsCount < 2) {
-            throw new IllegalArgumentException("Некорректные параметр");
+            throw new IllegalArgumentException("Некорректные параметры");
         }
         this.pointsCount = pointsCount;
         this.points = new FunctionPoint[pointsCount + 10];
@@ -160,26 +183,39 @@ public class ArrayTabulatedFunction implements TabulatedFunction {
         points[pointsCount] = null;
     }
 
-    public void addPoint(FunctionPoint point) throws InappropriateFunctionPointException{
-        if (pointsCount == points.length) {
-            FunctionPoint[] newArray = new FunctionPoint[points.length * 2];
-            System.arraycopy(points, 0, newArray, 0, pointsCount);
-            points = newArray;
-        }
+    public void addPoint(FunctionPoint point) throws InappropriateFunctionPointException {
+        double x = point.getX();
 
-        int insertIndex = pointsCount;
+        // Проверка исключения- совпадение абсцисс
+        // Ищет, есть ли уже точка с такой же абсциссой
         for (int i = 0; i < pointsCount; i++) {
-            if (points[i].getX() > point.getX()) {
-                insertIndex = i;
-                break;
+            if (points[i].getX() == x) {
+                // Если найдена точка с совпадающей абсциссой, выбрасывает исключение
+                throw new InappropriateFunctionPointException("Невозможно добавить точку: абсцисса x = " + x + " уже существует");
             }
         }
 
-        if (insertIndex < pointsCount) {
-            System.arraycopy(points, insertIndex, points, insertIndex + 1, pointsCount - insertIndex);
+        // Поиск места - определяет индекс для вставки, чтобы сохранить массив упорядоченным по x
+        int insertionIndex = 0;
+        while (insertionIndex < pointsCount && points[insertionIndex].getX() < x) {
+            insertionIndex++;
         }
 
-        points[insertIndex] = new FunctionPoint(point);
+        // Проверка размера массива
+        if (pointsCount == points.length) {
+            FunctionPoint[] newPoints = new FunctionPoint[points.length * 2];
+            System.arraycopy(points, 0, newPoints, 0, points.length);
+            points = newPoints;
+        }
+
+        // Сдвиг элементов - освобождает место для новой точки
+        // Сдвигает все элементы, начиная с insertionIndex, на одну позицию вправо
+        for (int i = pointsCount; i > insertionIndex; i--) {
+            points[i] = points[i - 1];
+        }
+
+        // Вставка
+        points[insertionIndex] = point;
         pointsCount++;
     }
 }

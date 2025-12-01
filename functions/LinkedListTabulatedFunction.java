@@ -93,6 +93,28 @@ public class LinkedListTabulatedFunction implements TabulatedFunction{
         initializeList();
     }
 
+    // Конструктор: с заданными x и y (для совместимости с тестами)
+    public LinkedListTabulatedFunction(double[] xValues, double[] yValues) {
+        if (xValues.length != yValues.length || xValues.length < 2) {
+            throw new IllegalArgumentException("Массивы x и y должны иметь одинаковую длину (минимум 2).");
+        }
+
+        // Проверка упорядоченности абсцисс
+        for (int i = 0; i < xValues.length - 1; i++) {
+            if (xValues[i] >= xValues[i + 1]) {
+                throw new IllegalArgumentException("Абсциссы должны быть строго упорядочены по возрастанию.");
+            }
+        }
+
+        initializeList();
+
+        // Добавление точек в список
+        for (int i = 0; i < xValues.length; i++) {
+            FunctionPoint point = new FunctionPoint(xValues[i], yValues[i]);
+            addNodeToEnd(point);
+        }
+    }
+
     // Конструктор с равномерным шагом
     public LinkedListTabulatedFunction(double leftX, double rightX, int pointsCount){
         if (leftX >= rightX || pointsCount < 2){
@@ -150,23 +172,22 @@ public class LinkedListTabulatedFunction implements TabulatedFunction{
 
     // Устанавливает абсциссу
     public void setPointX(int index, double x) throws InappropriateFunctionPointException{
-        FunctionNode node = getNodeByIndex(index);
+        if (index < 0 || index >= size){
+            throw new FunctionPointIndexOutOfBoundsException("Индекс за границами");
+        }
 
-        if (index > 0){
-            FunctionNode prevNode = getNodeByIndex(index - 1);
-            if (x <= prevNode.data.getX() + 1e-10){ //
-                throw new InappropriateFunctionPointException("Абсцисса должна быть больлше предыдущей");
+        FunctionNode current = getNodeByIndex(index);
+
+        if (size > 1){
+            double xPrev = current.prev.data.getX();
+            double xNext = current.next.data.getX();
+
+            if (x <= xPrev || x >= xNext){
+                throw new InappropriateFunctionPointException("Новая абсцисса нарушает упорядоченность");
             }
         }
 
-        if (index < size - 1){
-            FunctionNode nextNode = getNodeByIndex(index + 1);
-            if (x >= nextNode.data.getX() - 1e-10){
-                throw new InappropriateFunctionPointException("Абсцисса должна быть больше следующей");
-            }
-        }
-
-        node.data = new FunctionPoint(x, node.data.getY());
+        current.data = new FunctionPoint(x, current.data.getY());
     }
 
     // Устанавливает ординату
