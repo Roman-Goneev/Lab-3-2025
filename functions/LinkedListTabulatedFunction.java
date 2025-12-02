@@ -202,15 +202,16 @@ public class LinkedListTabulatedFunction implements TabulatedFunction{
 
         // Проверяет порядок абсцисс
         if (index > 0) {
-            FunctionNode prevNode = getNodeByIndex(index - 1);
-            if (point.getX() <= prevNode.data.getX() + 1e-10) {
+            double xPrev = node.prev.data.getX();
+
+            if (point.getX() <= xPrev) {
                 throw new InappropriateFunctionPointException("Абсцисса должна быть больше предыдущей");
             }
         }
 
         if (index < size - 1) {
-            FunctionNode nextNode = getNodeByIndex(index + 1);
-            if (point.getX() >= nextNode.data.getX() - 1e-10) {
+            double xNext = node.next.data.getX();
+            if (point.getX() >= xNext) {
                 throw new InappropriateFunctionPointException("Абсцисса должна быть меньше следующей");
             }
         }
@@ -244,7 +245,7 @@ public class LinkedListTabulatedFunction implements TabulatedFunction{
         FunctionNode current = head.next;
 
         while (current != head) {
-            if (Math.abs(current.data.getX() - point.getX()) < 1e-8) {
+            if (Math.abs(current.data.getX() - point.getX()) < 1e-9) {
                 throw new InappropriateFunctionPointException("Точка с абсциссой уже существует");
             }
             current = current.next;
@@ -291,22 +292,43 @@ public class LinkedListTabulatedFunction implements TabulatedFunction{
             return Double.NaN;
         }
 
-        // Ищем между какими точками находится x
+        // Ищет между какими точками находится x
         FunctionNode current = head.next;
         while (current.next != head) {
-            if (x >= current.data.getX() && x <= current.next.data.getX()) {
-                // Нашли интервал! Линейная интерполяция
-                double x1 = current.data.getX();
-                double x2 = current.next.data.getX();
+
+            double x1 = current.data.getX();
+            double x2 = current.next.data.getX();
+
+            // Проверка на совпадение с х1
+            if (Math.abs(x - x1) < 1e-9) {
+                return current.data.getY();
+            }
+
+            // Проверка на свопадение с х2
+            if (Math.abs(x - x2) < 1e-9) {
+                return current.next.data.getY();
+            }
+
+            // Если x находится строго между x1 и x2
+            if (x > x1 && x < x2) {
+                // Найден интервал - линейная интерполяция
                 double y1 = current.data.getY();
                 double y2 = current.next.data.getY();
 
                 return y1 + (y2 - y1) * (x - x1) / (x2 - x1);
             }
+
             current = current.next;
         }
 
-        return Double.NaN;  // не должно случиться
+
+        // Для надежности проверяет последнюю точку, если цикл завершился:
+        if (Math.abs(x - rightBound()) < 1e-9) {
+            return head.prev.data.getY();
+        }
+
+
+        return Double.NaN; // не должно случиться, если x в границах
     }
 
 }

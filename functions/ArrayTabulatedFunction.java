@@ -88,7 +88,7 @@ public class ArrayTabulatedFunction implements TabulatedFunction {
             double x1 = points[i].getX();
             double x2 = points[i + 1].getX();
 
-	    if (Math.abs(x - x1)<1e-10) {
+	    if (Math.abs(x - x1) < 1e-10) {
 		return points[i].getY();
 	    }
 
@@ -189,7 +189,7 @@ public class ArrayTabulatedFunction implements TabulatedFunction {
         // Проверка исключения- совпадение абсцисс
         // Ищет, есть ли уже точка с такой же абсциссой
         for (int i = 0; i < pointsCount; i++) {
-            if (points[i].getX() == x) {
+            if (Math.abs(points[i].getX() - x) < 1e-9) {
                 // Если найдена точка с совпадающей абсциссой, выбрасывает исключение
                 throw new InappropriateFunctionPointException("Невозможно добавить точку: абсцисса x = " + x + " уже существует");
             }
