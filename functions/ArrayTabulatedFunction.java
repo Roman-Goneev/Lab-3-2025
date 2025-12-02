@@ -144,14 +144,23 @@ public class ArrayTabulatedFunction implements TabulatedFunction {
 
     public void setPointX(int index, double x) throws FunctionPointIndexOutOfBoundsException, InappropriateFunctionPointException{
         if (index < 0 || index >= pointsCount) {
-            throw new FunctionPointIndexOutOfBoundsException();
+            throw new FunctionPointIndexOutOfBoundsException("Индекс вне границ");
         }
-        if (index > 0 && x <= points[index - 1].getX()){
-            throw new InappropriateFunctionPointException("Абсцисса должна быть больше предыдущей");
-        };
-        if (index < pointsCount - 1 && x >= points[index + 1].getX()){
-            throw new InappropriateFunctionPointException("Абсцисса должна быть меньше следующей");
-        };
+
+        if (index > 0){
+            double xPrev = points[index - 1].getX();
+            if (x < xPrev || Math.abs(x - xPrev) < 1e-9) {
+                throw new InappropriateFunctionPointException("Абсцисса должна быть больше предыдущей");
+            }
+        }
+
+        if (index < pointsCount - 1){
+            double xNext = points[index + 1].getX();
+            if (x > xNext || Math.abs(x - xNext) < 1e-9) {
+                throw new InappropriateFunctionPointException("Абсцисса должна быть меньше следующей");
+            }
+        }
+
         points[index] = new FunctionPoint(x, points[index].getY());
     }
 
